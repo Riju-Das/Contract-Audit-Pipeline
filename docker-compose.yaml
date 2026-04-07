@@ -26,7 +26,6 @@ services:
       - chromadb_data:/data
 
 
-
 volumes:
   kafka_data:
   chromadb_data:
