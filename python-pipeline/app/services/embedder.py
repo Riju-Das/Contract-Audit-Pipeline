@@ -12,7 +12,7 @@ def get_embedding_model():
 
         return HuggingFaceEmbeddings(
             model_name=model_name,
-            model_kwarge={"device":"cpu"},
+            model_kwargs={"device":"cpu"},
             encode_kwargs=encode_kwargs,
         )
     except Exception as e:
@@ -26,7 +26,7 @@ def create_vector_store(chunks):
 
         vector_db = Chroma.from_documents(
             documents=chunks,
-            embeddings=embeddings,
+            embedding=embeddings,
             persist_directory=settings.db_dir
         )
 

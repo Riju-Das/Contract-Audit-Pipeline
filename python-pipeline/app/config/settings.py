@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     kafka_bootstrap_servers: str = "localhost:9092"
 
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    policy_dir:str = os.path.join(base_dir,"violation_policies")
+    policy_dir:str = os.path.join(base_dir,"violation-policies")
     db_dir: str = os.path.join(base_dir,"db")
 
     model_config = SettingsConfigDict(
