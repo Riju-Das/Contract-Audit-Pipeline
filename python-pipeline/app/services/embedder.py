@@ -16,13 +16,13 @@ def get_embedding_model():
             encode_kwargs=encode_kwargs,
         )
     except Exception as e:
-        logger.error(f"failed to load model BAAI/bge-m3 : {str(e)}")
-        raise RuntimeError("failed to load BAAI/bge-m3") from e
+        logger.error(f"Failed to load model BAAI/bge-m3 : {str(e)}")
+        raise RuntimeError("Failed to load BAAI/bge-m3") from e
 
 def create_vector_store(chunks):
     try:
         embeddings = get_embedding_model()
-        print(f"converting {len(chunks)} chunks into vectors")
+        print(f"Converting {len(chunks)} chunks into vectors")
 
         vector_db = Chroma.from_documents(
             documents=chunks,
@@ -37,5 +37,5 @@ def create_vector_store(chunks):
         logger.error(f"Permission Denied : Failed to create vectors")
         raise
     except Exception as e:
-        logger.error(f"failed to create vectors : {str(e)}")
+        logger.error(f"Failed to create vectors : {str(e)}")
         raise
