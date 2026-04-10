@@ -16,5 +16,6 @@ confluent-kafka
 pydantic-settings
 
 pymupdf
+pymupdf4llm
 python-dotenv
 requests
