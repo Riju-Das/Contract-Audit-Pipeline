@@ -1,38 +1,38 @@
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_chroma import Chroma
-from app.config.settings import settings
+from sentence_transformers import SentenceTransformer
+
 import logging
 
 logger = logging.getLogger(__name__)
+_model = None
 
 def get_embedding_model():
-    try:
-        model_name = "BAAI/bge-m3"
-        encode_kwargs = {"normalize_embeddings": True}
 
-        return HuggingFaceEmbeddings(
-            model_name=model_name,
-            model_kwargs={"device":"cpu"},
-            encode_kwargs=encode_kwargs,
-        )
-    except Exception as e:
-        logger.error(f"Failed to load model BAAI/bge-m3 : {str(e)}")
-        raise RuntimeError("Failed to load BAAI/bge-m3") from e
+    global _model
+    if _model is None:
+        try:
+            model_name = "BAAI/bge-m3"
+            _model = SentenceTransformer(model_name)
+            logger.info(f"Model: {model_name} loaded successfully")
+        except Exception as e:
+            logger.error(f"Failed to load model BAAI/bge-m3 : {str(e)}")
+            raise RuntimeError("Failed to load BAAI/bge-m3") from e
+    return _model
 
-def create_vector_store(chunks):
+def generate_embeddings(chunks):
+    if not chunks:
+        raise ValueError("Chunk list is empty")
+
     try:
-        embeddings = get_embedding_model()
+        model = get_embedding_model()
+
         print(f"Converting {len(chunks)} chunks into vectors")
 
-        vector_db = Chroma.from_documents(
-            documents=chunks,
-            embedding=embeddings,
-            persist_directory=settings.db_dir
-        )
+        embeddings = model.encode(chunks)
 
-        print(f"Successfully created vectors")
+        logger.info(f"Generated embeddings with shape : {embeddings.shape}")
 
-        return vector_db
+        return embeddings
+
     except PermissionError:
         logger.error(f"Permission Denied : Failed to create vectors")
         raise

@@ -1,13 +1,16 @@
-import os
 import sys
 import logging
 from pathlib import Path
+import chromadb
+from langchain_community.document_loaders import DirectoryLoader, TextLoader
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(BASE_DIR))
 
 from app.services.chunker import get_legal_chunks
-from app.services.embedder import create_vector_store
+from app.services.embedder import generate_embeddings
+from app.config.settings import settings
 
 logging.basicConfig(
     level=logging.INFO,
@@ -15,43 +18,71 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def ingest_policies():
+
+def get_chroma_collection():
+    client = chromadb.HttpClient(
+        host = settings.chroma_host,
+        port = settings.chroma_port,
+    )
+
+    existing = [c.name for c in client.list_collections()]
+
+    if settings.chroma_collection_name in existing:
+        client.delete_collection(settings.chroma_collection_name)
+        logger.info(f"Delete existing collection {settings.chroma_collection_name}")
+
+    return client.get_or_create_collection(
+        name= settings.chroma_collection_name,
+        metadata = {"hnsw:space": "cosine"}
+    )
+
+
+def process_documents():
     md_dir = BASE_DIR / "app" / "output_md"
 
-    if not os.path.exists(md_dir):
-        logger.error("Markdown directory does not exist")
-        logger.info("Run pdf to markdown converter script first")
-        return
+    loader = DirectoryLoader(str(md_dir), glob="**/*.md", loader_cls=TextLoader)
+    documents = loader.load()
 
     all_document_chunks = []
 
-    logger.info("Starting ingestion process....")
-    for filename in os.listdir(md_dir):
-        if filename.endswith(".md"):
+    for doc in documents:
+        chunks = get_legal_chunks(doc.page_content)
 
-            file_path = os.path.join(md_dir, filename)
-            logger.info("Processing " + filename)
+        for chunk in chunks:
+            chunk.metadata.update(doc.metadata)
+            all_document_chunks.append(chunk)
 
-            with open(file_path, "r", encoding="utf-8") as f:
-                content = f.read()
+    logger.info(f"Processed {len(documents)} files into {len(all_document_chunks)} legal fragments.")
+    return all_document_chunks
 
-            chunks = get_legal_chunks(content)
 
-            for chunk in chunks:
-                chunk.metadata["source"] = filename
+def upload_to_chroma(collection , chunks ):
+    texts = [c.page_content for c in chunks]
+    metadatas = [c.metadata for c in chunks]
+    ids = [f"chunk_{i}" for i in range(len(chunks))]
 
-            all_document_chunks.extend(chunks)
-            logger.info(f"Created {len(chunks)} chunks for {filename}")
+    logger.info("Computing vectors..")
 
-    if all_document_chunks:
-        logger.info(f"Total chunks to vectorize {len(all_document_chunks)}")
+    vectors = generate_embeddings(texts).tolist()
 
-        create_vector_store(all_document_chunks)
+    collection.add(
+        documents = texts,
+        embeddings = vectors,
+        metadatas = metadatas,
+        ids = ids
+    )
+    logger.info(f"Vector store successfully created for  {len(chunks)} chunks")
 
-        logger.info(f"Vector store successfully created for  {len(all_document_chunks)} chunks")
 
-    else:
-        logger.warning(f"No chunks found in {md_dir}")
+def ingest_policies():
+    try:
+        collection = get_chroma_collection()
+        chunks = process_documents()
+        upload_to_chroma(collection, chunks)
+    except Exception as e:
+        logger.error(f"Pipeline failed: {e}")
+
+
 
 if __name__ == "__main__":
     ingest_policies()

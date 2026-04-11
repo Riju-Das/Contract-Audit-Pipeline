@@ -9,6 +9,10 @@ class Settings(BaseSettings):
     policy_dir:str = os.path.join(base_dir,"violation-policies")
     db_dir: str = os.path.join(base_dir,"db")
 
+    chroma_host: str
+    chroma_port: int
+    chroma_collection_name: str = "legal_policies"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         extra="ignore"
