@@ -6,6 +6,7 @@ langchain
 langchain-core
 langchain-community
 langchain-google-genai
+google-generativeai
 langchain-huggingface
 langchain-chroma
 
