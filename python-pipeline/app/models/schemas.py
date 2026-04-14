@@ -6,6 +6,7 @@ class Violation(BaseModel):
     chunk_text: str = Field(..., description="Actual suspicious text from the contract")
     matched_policy: str = Field(..., description="Specific policy for this violation")
     confidence: float = Field(..., description="Similarity score (0 - 100)")
+    reasoning: str = Field(..., description="Reason for this violation")
     source_file: Optional[str]=  Field(None, description="The source file of the policy document")
 
 class AuditResponse(BaseModel):

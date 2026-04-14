@@ -1,8 +1,10 @@
 import google.generativeai as genai
 import json
+import logging
 from app.config.settings import settings
 from google.generativeai.types import GenerationConfig
 
+logger = logging.getLogger(__name__)
 
 genai.configure(api_key=settings.gemini_api_key)
 
@@ -55,5 +57,5 @@ async def call_gemini_batch_audit(suspicious_items: list):
         return json.loads(clean_json)
 
     except Exception as e:
-        print(f"Error calling gemini: {e}")
+        logger.error(f"Error calling gemini: {e}")
         return []
