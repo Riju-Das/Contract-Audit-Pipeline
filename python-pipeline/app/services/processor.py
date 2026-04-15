@@ -14,7 +14,7 @@ async def process_upload(file_name: str, content_bytes: bytes) -> str:
                 tmp.write(content_bytes)
                 tmp_path = tmp.name
 
-                return pymupdf4llm.to_markdown(tmp_path)
+            return pymupdf4llm.to_markdown(tmp_path)
         except Exception as e:
             logger.error(f"Failed to process pdf file {file_name}: {str(e)}")
             raise ValueError(f"PDF Conversion Error: {str(e)}")

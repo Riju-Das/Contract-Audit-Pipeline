@@ -14,6 +14,8 @@ async def audit_contract(file: UploadFile = File(...)):
         if not content_bytes:
             raise HTTPException(status_code=400, detail="Content cannot be empty")
 
+        await file.seek(0)
+
         markdown_text = await process_upload(file.filename,content_bytes)
 
         result = await auditor.analyze_contract(file.filename, markdown_text)
