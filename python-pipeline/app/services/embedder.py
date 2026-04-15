@@ -25,7 +25,7 @@ def generate_embeddings(chunks):
     try:
         model = get_embedding_model()
 
-        print(f"Converting {len(chunks)} chunks into vectors")
+        logger.info(f"Converting {len(chunks)} chunks into vectors")
 
         embeddings = model.encode(chunks)
 

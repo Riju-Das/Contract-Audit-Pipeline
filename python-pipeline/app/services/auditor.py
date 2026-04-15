@@ -10,7 +10,7 @@ class LegalAuditor:
     def __init__(self):
         try:
             self.retriever = LegalRetriever()
-            self.similarity_threshold = 0.5
+            self.similarity_threshold = 0.45
         except Exception as e:
             logger.error(f"Failed to initialize legal auditor: {e}")
             raise
@@ -56,14 +56,16 @@ class LegalAuditor:
 
                             orig = next(item for item in suspicious_violations if item["index"]==verdict["index"])
 
-                            final_violations.append(Violation(
-                                chunk_index=verdict["index"],
-                                chunk_text = orig["contract_text"],
-                                matched_policy=orig["policy_text"],
-                                confidence=verdict["confidence"],
-                                reasoning=verdict["explanation"],
-                                source_file=orig["source"]
-                            ))
+                            if orig:
+                                final_violations.append(Violation(
+                                    chunk_index=verdict["index"],
+                                    chunk_text = orig["contract_text"],
+                                    matched_policy=orig["policy_text"],
+                                    confidence=verdict["confidence"],
+                                    reasoning=verdict["explanation"],
+                                    source_file=orig["source"]
+                                ))
+
                 except Exception as e:
                     logger.error(f"Error calling gemini_batch_audit: {e}")
                     raise

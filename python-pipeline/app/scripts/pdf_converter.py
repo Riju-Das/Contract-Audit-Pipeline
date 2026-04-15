@@ -1,6 +1,9 @@
 import pymupdf4llm
 import os
 import pathlib
+import logging
+
+logger = logging.getLogger(__name__)
 
 def convert_pdfs_to_markdown(pdf_dir:str, output_dir:str):
 
@@ -20,7 +23,7 @@ def convert_pdfs_to_markdown(pdf_dir:str, output_dir:str):
             with open(output_path, "w", encoding="utf-8") as f:
                 f.write(md_text)
 
-            print(f"Converted {filename} to {output_filename}")
+            logger.info(f"Converted {filename} to {output_filename}")
 
 
 if __name__ == "__main__":
