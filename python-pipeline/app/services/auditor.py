@@ -1,7 +1,7 @@
 from app.models.schemas import Violation, AuditResponse, Severity
 from app.services.chunker import get_legal_chunks
 from app.services.retriever import LegalRetriever
-from app.services.gemini_service import call_gemini_batch_audit
+from app.services.ai_service import call_ai_batch_audit
 import logging
 
 logger = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ class LegalAuditor:
 
             if suspicious_violations:
                 try:
-                    ai_verdict = await call_gemini_batch_audit(suspicious_violations)
+                    ai_verdict = call_ai_batch_audit(suspicious_violations)
 
                     logger.info(f"AI RAW OUTPUT: {ai_verdict}")
 
