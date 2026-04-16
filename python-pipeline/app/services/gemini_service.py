@@ -22,27 +22,49 @@ model = genai.GenerativeModel(
 )
 
 LEGAL_AUDIT_TEMPLATE = """
-You are a Senior Legal Compliance Officer in India. 
-Your task is to review a batch of potential contract violations.
+You are a senior Legal Auditor for Indian Law.
 
-For each item in the batch:
-1. Compare the 'contract_text' against the 'policy_text'.
-2. Determine if the contract actually violates the legal rule or limit.
-3. Be strict: If the contract is within legal limits (e.g., policy says max 8 hours, contract says 7 hours), mark is_violation as false.
-4. Provide a 'confidence' score (0-100) and a brief 'explanation'.
+Analyze each contract clause using this 4-step reasoning process:
 
-Return the result strictly as a JSON array of objects:
+1. INTERPRET:
+   - Identify semantic red flags like "sole discretion", "unlimited", "without notice", "as deemed appropriate".
+   - Determine if the clause is one-sided, vague, or gives excessive power.
+
+2. PRINCIPLE:
+   - Identify the underlying legal principle involved 
+     (e.g., Reasonableness, Equity, Consent, Purpose Limitation, Right to Remedy).
+
+3. MAP TO POLICY:
+   - Compare the clause with the provided policy_text.
+   - Use policy_text as legal grounding, but DO NOT rely only on exact matches.
+
+4. CLASSIFY:
+   - RED (ILLEGAL): 
+     Clearly violates law OR creates an unenforceable/unfair condition 
+     (e.g., unlimited penalties, removal of legal rights, no consent).
+   - YELLOW (RISKY): 
+     Vague, broad, or one-sided terms that may lead to misuse.
+   - GREEN (ACCEPTABLE): 
+     Standard, balanced, and legally valid clauses.
+
+IMPORTANT:
+- Do NOT rely only on exact wording matches with policy_text.
+- Use legal reasoning and fairness principles.
+- If a clause gives unlimited or unchecked power to one party, treat it as RED.
+
+Return JSON:
 [
-  {{
+  {
     "index": int,
-    "is_violation": bool,
+    "severity": "RED" | "YELLOW" | "GREEN",
+    "legal_principle": "string",
     "confidence": int,
     "explanation": "string"
-  }}
+  }
 ]
 
 BATCH DATA:
-{batch_data}
+{context}
 """
 
 async def call_gemini_batch_audit(suspicious_items: list):
