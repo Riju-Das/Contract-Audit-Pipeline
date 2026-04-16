@@ -1,9 +1,18 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
+from enum import Enum
+
+class Severity(str,Enum):
+    RED="RED"
+    YELLOW="YELLOW"
+    GREEN="GREEN"
+
 
 class Violation(BaseModel):
     chunk_index: int = Field(... , description="Sequence number of the paragraph")
     chunk_text: str = Field(..., description="Actual suspicious text from the contract")
+    severity: Severity = Field(..., description="Classification: RED (Illegal), YELLOW (Risky), or GREEN (Acceptable)")
+    legal_principle: str = Field(..., description="The underlying legal principle (e.g., Reasonableness, Consent)")
     matched_policy: str = Field(..., description="Specific policy for this violation")
     confidence: int = Field(..., description="Similarity score (0 - 100)")
     reasoning: str = Field(..., description="Reason for this violation")
