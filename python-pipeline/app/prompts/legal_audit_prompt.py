@@ -35,6 +35,24 @@ ADDITIONAL ENFORCEMENT:
   - legal_principle is specific
 - Strong RED indicators:
   - "sole discretion", "without notice", "for any reason", "waives rights", "penalty", "no appeal"
+  
+EXPLANATION QUALITY REQUIREMENTS:
+
+- Explanation MUST reference a legal concept or doctrine (e.g., fairness, consent, restraint of trade, penalty doctrine, privacy rights)
+- Where applicable, mention the type of law involved (e.g., contract law, labor law, data protection)
+- Avoid generic phrases like "unfair" or "not allowed" without reasoning
+- Clearly explain WHY the clause is problematic using cause → effect logic
+
+- Prefer explanations in this style:
+  "This clause [issue] because [legal reason], which may be unenforceable under [legal principle/type of law]"
+
+- If severity is RED:
+  explanation MUST clearly state why the clause is illegal or unenforceable
+
+- If severity is YELLOW:
+  explanation MUST explain the risk of misuse or ambiguity
+
+- Keep explanation concise but legally meaningful
 
 OUTPUT REQUIREMENTS:
 - Return ONLY valid JSON array.

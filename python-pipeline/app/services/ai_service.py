@@ -9,8 +9,6 @@ logger = logging.getLogger(__name__)
 
 client = Groq(api_key=settings.groq_api_key)
 
-
-
 def call_ai_batch_audit(suspicious_items: list):
 
     if not suspicious_items:
@@ -29,6 +27,7 @@ def call_ai_batch_audit(suspicious_items: list):
         )
 
         raw_text = response.choices[0].message.content.strip()
+
         print(f"Raw groq output: {raw_text}", flush=True)
 
         match = re.search(r'\[.*]', raw_text, re.DOTALL)
