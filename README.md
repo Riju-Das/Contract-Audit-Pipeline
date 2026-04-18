@@ -1,97 +1,95 @@
-# Distributed Contract Auditor
+# Contract Audit Pipeline
 
-An automated contract auditing system built with a polyglot foundation. Drop a legal contract into the system and it checks clauses against a policy knowledge base, flags risky/legal violations with confidence scores, and returns a structured AI-assisted review output.
+Contract Audit Pipeline is a multi-service system for legal contract risk analysis. It combines a Spring Boot backend with a Python AI worker to detect potentially risky or non-compliant clauses by comparing contract text against policy knowledge.
 
----
+## Overview
 
-## What it does
+The project is designed to:
 
-1. Upload a contract (PDF or text) through the Spring Boot backend.
-2. Spring Boot publishes parallel job events for audit and summarization.
-3. The audit pipeline processes the contract with RAG (chunking + Chroma retrieval + AI legal classification) and sends back violations with confidence and severity.
-4. The summarizer pipeline generates a plain-language contract summary with risk context.
-5. Spring Boot aggregates callbacks from both pipelines and exposes the final combined review result.
+- Ingest contract files (PDF or text)
+- Convert and normalize document content
+- Split contracts into legally meaningful chunks
+- Retrieve related policy context from a vector database
+- Classify and score potential violations with AI
+- Return structured legal-audit output for downstream use
 
----
+The current implementation already includes the working Python audit flow and the Spring backend foundation, with orchestration and authentication layers being expanded.
 
-## Architecture
+## Architecture Flowchart
 
+```mermaid
+flowchart LR
+  U[User / Client App] --> SB[Spring Boot Backend]
+  SB -->|Audit request| PY[FastAPI Audit Worker]
+
+  subgraph PP[Python Audit Pipeline]
+    PY --> P1[File Processing\nPDF -> Markdown/Text]
+    P1 --> P2[Chunking Service\nLegal Sections]
+    P2 --> P3[Embedding + Retrieval]
+    P3 --> CDB[(ChromaDB)]
+    P3 --> P4[AI Legal Classification]
+    P4 --> R[Violation Results]
+  end
+
+  R --> SB
+
+  SB --- PG[(PostgreSQL)]
+  SB --- RD[(Redis)]
+  SB --- KF[(Kafka)]
+
+  LC[LangChain RAG Orchestration\nIn Progress]
+  JWT[JWT User Authentication\nIn Progress]
+
+  SB -. planned integration .- LC
+  SB -. planned integration .- JWT
 ```
-Upload → Spring Boot (orchestrator)
-              ↓                    ↓
-       Kafka: audit-jobs    Kafka: summarize-jobs
-              ↓                    ↓
-     FastAPI audit service   FastAPI summarizer service
-   (ChromaDB + RAG + Groq)   (LLM summary pipeline)
-              ↓                    ↓
-POST /api/jobs/{id}/results   POST /api/jobs/{id}/summary
-              ↘                  ↙
-            Spring Boot (job marked DONE)
-                      ↓
-                Final API response
-```
 
-The overall system architecture is Spring Boot centered, with Python workers executing AI-heavy tasks independently and returning async callbacks to the orchestrator.
+## Architecture Notes
 
----
+- Spring Boot is the main backend foundation and integration layer.
+- FastAPI handles AI-heavy document analysis.
+- ChromaDB stores and serves policy vectors for retrieval.
+- PostgreSQL and Redis are configured for application data and caching/session support.
+- Kafka is present for event-driven pipeline expansion.
+- LangChain-based RAG orchestration and JWT auth are being integrated.
 
 ## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Orchestrator | Spring Boot (Java) |
-| Audit Service | FastAPI (Python) + ChromaDB + sentence-transformers + Groq |
-| Summarizer Service | FastAPI (Python) + LLM summarization |
-| Message Queue | Apache Kafka |
-| Vector Database | ChromaDB |
-| Embedding Model | BAAI/bge-m3 |
-| Infrastructure | Docker Compose |
+| Backend API | Spring Boot, Java |
+| AI Worker API | FastAPI, Uvicorn, Python |
+| Document Parsing | PyMuPDF, pymupdf4llm |
+| Text Chunking | LangChain text splitters |
+| Embeddings | sentence-transformers |
+| Vector Store | ChromaDB |
+| LLM Integration | Groq SDK, Google Generative AI SDK |
+| Messaging | Apache Kafka |
+| Database | PostgreSQL |
+| Cache / Fast Access | Redis |
+| Validation / Config | Pydantic, pydantic-settings |
+| Containerized Services | Docker Compose |
 
----
+## Codebase Layout
 
-## Services
+- `spring-backend/`
+	Spring Boot application scaffold including domain models, DTOs, repositories, and application configuration.
 
-| Service | Port | Description |
-|---|---|---|
-| Spring Boot | 8080 | Orchestrator, callback aggregation, API layer |
-| FastAPI Audit | 8001 | RAG-based violation detection |
-| FastAPI Summarizer | 8002 | AI contract summarization worker |
-| ChromaDB | 8000 | Vector store for policies |
-| Kafka | 9092 | Message broker |
+- `python-pipeline/`
+	FastAPI-based AI audit worker and supporting modules.
 
----
+- `python-pipeline/app/api/`
+	API routes for audit endpoints.
 
+- `python-pipeline/app/services/`
+	Core services for upload processing, chunking, embedding, retrieval, and AI-based auditing.
 
-## How the Audit Pipeline Works
+- `python-pipeline/app/models/`
+	Data schemas for audit output models.
 
-The audit service uses **Retrieval-Augmented Generation (RAG)**:
+- `python-pipeline/app/violation-policies/` and `python-pipeline/app/output_md/`
+	Policy source and generated markdown artifacts used by the pipeline.
 
-1. The uploaded contract is normalized to text (PDFs are converted to markdown first).
-2. The contract is split into legal chunks with markdown-aware and recursive splitting.
-3. Each chunk is converted to vector embeddings using `sentence-transformers` (`BAAI/bge-m3`).
-4. ChromaDB retrieves the closest policy match for each chunk using cosine-space similarity.
-5. Chunks above the current similarity threshold (0.4) are marked as suspicious.
-6. Suspicious items are batch-reviewed by Groq Llama 3.3 70B and only actionable severities are returned.
+- `docker-compose.yaml`
+	Infrastructure service definitions for Kafka, ChromaDB, PostgreSQL, and Redis.
 
----
-
-## How the Summarizer Works
-
-The summarizer runs as a separate worker pipeline and processes the full contract text to produce a structured plain-English output.
-
-Typical summary output includes:
-
-```json
-{
-       "contract_type": "Service Agreement",
-       "duration": "2 years",
-       "parties": ["Acme Corp", "Vendor Ltd"],
-       "key_clauses": ["Unlimited liability waiver", "Auto-renewal without notice"],
-       "risk_level": "HIGH",
-       "plain_summary": "..."
-}
-```
-
-Spring Boot merges this summary callback with audit callback data before final response delivery.
-
----
