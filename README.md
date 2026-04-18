@@ -13,35 +13,37 @@ The project is designed to:
 - Classify and score potential violations with AI
 - Return structured legal-audit output for downstream use
 
-The current implementation already includes the working Python audit flow and the Spring backend foundation, with orchestration and authentication layers being expanded.
+The current implementation includes the working Python audit flow and Spring backend foundation, with RAG, LangChain retrieval, and JWT support reflected in the project setup.
 
 ## Architecture Flowchart
 
-```mermaid
-flowchart LR
-  U[User / Client App] --> SB[Spring Boot Backend]
-  SB -->|Audit request| PY[FastAPI Audit Worker]
+```text
+User / Client App
+-
+Spring Boot Backend
+-
+FastAPI Audit Worker
+-
+File Processing (PDF to Markdown/Text)
+-
+Chunking Service (Legal Sections)
+-
+Embedding + Retrieval
+-
+ChromaDB Policy Match
+-
+AI Legal Classification
+-
+Violation Results
+-
+Spring Boot Final Response
 
-  subgraph PP[Python Audit Pipeline]
-    PY --> P1[File Processing\nPDF -> Markdown/Text]
-    P1 --> P2[Chunking Service\nLegal Sections]
-    P2 --> P3[Embedding + Retrieval]
-    P3 --> CDB[(ChromaDB)]
-    P3 --> P4[AI Legal Classification]
-    P4 --> R[Violation Results]
-  end
-
-  R --> SB
-
-  SB --- PG[(PostgreSQL)]
-  SB --- RD[(Redis)]
-  SB --- KF[(Kafka)]
-
-  LC[LangChain RAG Orchestration\nIn Progress]
-  JWT[JWT User Authentication\nIn Progress]
-
-  SB -. planned integration .- LC
-  SB -. planned integration .- JWT
+Supporting Services
+- PostgreSQL
+- Redis
+- Kafka
+- LangChain RAG Orchestration
+- JWT User Authentication
 ```
 
 ## Architecture Notes
@@ -51,7 +53,8 @@ flowchart LR
 - ChromaDB stores and serves policy vectors for retrieval.
 - PostgreSQL and Redis are configured for application data and caching/session support.
 - Kafka is present for event-driven pipeline expansion.
-- LangChain-based RAG orchestration and JWT auth are being integrated.
+- LangChain-based RAG orchestration is implemented in the audit pipeline.
+- JWT authentication is configured in the backend setup.
 
 ## Tech Stack
 
