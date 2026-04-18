@@ -1,60 +1,73 @@
 # Contract Audit Pipeline
 
-Contract Audit Pipeline is a multi-service system for legal contract risk analysis. It combines a Spring Boot backend with a Python AI worker to detect potentially risky or non-compliant clauses by comparing contract text against policy knowledge.
+Contract Audit Pipeline is an event-driven legal analysis system for auditing contracts against policy rules. The project combines a Spring Boot backend, a Python AI pipeline, and Kafka-based messaging to process contracts and identify risky or non-compliant clauses.
 
-## Overview
+## What This Project Does
 
-The project is designed to:
+The platform is built to:
 
 - Ingest contract files (PDF or text)
-- Convert and normalize document content
-- Split contracts into legally meaningful chunks
-- Retrieve related policy context from a vector database
-- Classify and score potential violations with AI
-- Return structured legal-audit output for downstream use
+- Normalize and parse document content
+- Run legal chunking and retrieval with RAG
+- Compare contract text against policy vectors in ChromaDB
+- Classify risk severity and legal violations with AI
+- Use Kafka as the messaging backbone between services
+- Produce structured audit results for downstream workflows
 
-The current implementation includes the working Python audit flow and Spring backend foundation, with RAG, LangChain retrieval, and JWT support reflected in the project setup.
+## Core Features
+
+1. Contract ingestion and processing pipeline for PDF/text agreements.
+2. RAG-based legal analysis using LangChain chunking and vector retrieval.
+3. ChromaDB-backed policy matching for contextual legal checks.
+4. AI-driven classification of suspicious clauses and severity scoring.
+5. Kafka-based event flow for asynchronous and scalable orchestration.
+6. Spring Boot backend with persistence and caching layer integration.
+7. JWT-enabled backend security configuration.
 
 ## Architecture Flowchart
 
 ```text
-User / Client App
--
-Spring Boot Backend
--
-FastAPI Audit Worker
--
-File Processing (PDF to Markdown/Text)
--
-Chunking Service (Legal Sections)
--
-Embedding + Retrieval
--
-ChromaDB Policy Match
--
-AI Legal Classification
--
-Violation Results
--
-Spring Boot Final Response
+[User / Client]
+       |
+       v
+[Spring Boot Backend]
+       |
+       v
+[Kafka]
+       |
+       v
+[Python Audit Worker]
+       |
+       v
+[RAG + LangChain + ChromaDB]
+       |
+       v
+[AI Legal Classification]
+       |
+       v
+[Final Contract Audit Output]
 
-Supporting Services
-- PostgreSQL
-- Redis
-- Kafka
-- LangChain RAG Orchestration
-- JWT User Authentication
+Support: Spring Boot Backend -> PostgreSQL | Redis | JWT Authentication
 ```
+
+## Kafka In This Project
+
+Kafka is used in this project as the event backbone for audit orchestration:
+
+1. It carries audit workflow events between backend orchestration and worker processing.
+2. It decouples contract intake from heavy AI audit execution.
+3. It supports asynchronous scaling when document volume increases.
+4. It keeps request handling responsive while worker-side analysis runs.
+
 
 ## Architecture Notes
 
-- Spring Boot is the main backend foundation and integration layer.
-- FastAPI handles AI-heavy document analysis.
-- ChromaDB stores and serves policy vectors for retrieval.
-- PostgreSQL and Redis are configured for application data and caching/session support.
-- Kafka is present for event-driven pipeline expansion.
-- LangChain-based RAG orchestration is implemented in the audit pipeline.
-- JWT authentication is configured in the backend setup.
+- Spring Boot acts as the backend integration and orchestration layer.
+- FastAPI runs the AI-heavy audit and document analysis pipeline.
+- LangChain + RAG logic performs chunking and retrieval workflow.
+- ChromaDB stores and serves policy vectors for semantic matching.
+- PostgreSQL and Redis provide persistence and fast-access support.
+- JWT is part of the backend security configuration.
 
 ## Tech Stack
 
@@ -63,36 +76,43 @@ Supporting Services
 | Backend API | Spring Boot, Java |
 | AI Worker API | FastAPI, Uvicorn, Python |
 | Document Parsing | PyMuPDF, pymupdf4llm |
-| Text Chunking | LangChain text splitters |
-| Embeddings | sentence-transformers |
+| RAG and Chunking | LangChain text splitters |
+| Embeddings | sentence-transformers (BAAI/bge-m3) |
 | Vector Store | ChromaDB |
 | LLM Integration | Groq SDK, Google Generative AI SDK |
-| Messaging | Apache Kafka |
+| Messaging Backbone | Apache Kafka |
 | Database | PostgreSQL |
-| Cache / Fast Access | Redis |
+| Cache Layer | Redis |
 | Validation / Config | Pydantic, pydantic-settings |
 | Containerized Services | Docker Compose |
 
-## Codebase Layout
+## Repository Structure
 
 - `spring-backend/`
-	Spring Boot application scaffold including domain models, DTOs, repositories, and application configuration.
+	Spring Boot application including domain models, DTOs, repositories, configuration, and security wiring.
 
 - `python-pipeline/`
-	FastAPI-based AI audit worker and supporting modules.
+	FastAPI-based audit pipeline including services for processing, retrieval, and AI analysis.
 
 - `python-pipeline/app/api/`
-	API routes for audit endpoints.
+	Audit route definitions.
 
 - `python-pipeline/app/services/`
-	Core services for upload processing, chunking, embedding, retrieval, and AI-based auditing.
+	Core pipeline services: upload processing, chunking, embedding, retrieval, and AI audit logic.
 
 - `python-pipeline/app/models/`
-	Data schemas for audit output models.
+	Schema models for violations and audit outputs.
 
 - `python-pipeline/app/violation-policies/` and `python-pipeline/app/output_md/`
-	Policy source and generated markdown artifacts used by the pipeline.
+	Policy inputs and processed markdown artifacts used by the audit flow.
 
 - `docker-compose.yaml`
-	Infrastructure service definitions for Kafka, ChromaDB, PostgreSQL, and Redis.
+	Infrastructure definitions for Kafka, ChromaDB, PostgreSQL, and Redis.
+
+## Current Scope
+
+- Event-driven contract audit workflow with Kafka
+- RAG and LangChain-based legal retrieval
+- AI classification of contract risk and policy violations
+- Spring Boot and Python service foundation for end-to-end pipeline integration
 
