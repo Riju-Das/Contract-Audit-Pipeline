@@ -10,6 +10,7 @@ public record ViolationDto (
     @JsonProperty("legal_principle")  String legalPrinciple,
     @JsonProperty("matched_policy")  String matchedPolicy,
     @JsonProperty("confidence")  int confidence,
+    @JsonProperty("severity") String severity,
     @JsonProperty("reasoning")  String reasoning,
     @JsonProperty("source_file") String sourceFile
 ){}

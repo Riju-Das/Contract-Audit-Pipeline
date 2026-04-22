@@ -1,0 +1,89 @@
+package com.project.contract_audit.service;
+
+
+import com.project.contract_audit.dto.AuditResponseDto;
+import com.project.contract_audit.model.ContractRecord;
+import com.project.contract_audit.model.Violation;
+import com.project.contract_audit.repository.contractRepository;
+import lombok.Builder;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+
+@Slf4j
+@RequiredArgsConstructor
+@Service
+public class AuditService {
+
+    private final RestClient pythonWorkerClient;
+    private final contractRepository contractRepository;
+
+    @Transactional
+    public ContractRecord processAndSaveContract(MultipartFile file, long userId){
+
+        log.info("Starting audit for file {}" , file.getOriginalFilename());
+
+        if(file.isEmpty()){
+            throw new IllegalArgumentException("Uploaded file is empty");
+        }
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("file", file.getResource());
+
+        AuditResponseDto auditResponse;
+
+        try{
+            auditResponse = pythonWorkerClient.post()
+                    .uri("/api/v1/audit")
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .body(body)
+                    .retrieve()
+                    .body(AuditResponseDto.class);
+        }
+        catch(RestClientException e){
+            log.error("Network error communicating with Python worker: {}", e.getMessage());
+            throw new RuntimeException("Failed to communicate with audit service. Please try again later.");
+        }
+
+        log.info("Audit Successful for file {}.",file.getOriginalFilename());
+
+        ContractRecord contractRecord = ContractRecord.builder()
+                .userId(userId)
+                .filename(file.getOriginalFilename())
+                .totalViolations(auditResponse.totalViolations())
+                .build();
+
+        List<Violation> violations = auditResponse.violations().stream()
+                .map(dto -> Violation.builder()
+                        .chunkIndex(dto.chunkIndex())
+                        .chunkText(dto.chunkText())
+                        .legalPrinciple(dto.legalPrinciple())
+                        .matchedPolicy(dto.matchedPolicy())
+                        .reasoning(dto.reasoning())
+                        .confidence(dto.confidence())
+                        .severity(dto.severity())
+                        .sourceFile(dto.sourceFile())
+                        .contractRecord(contractRecord)
+                        .build())
+                .toList();
+
+        contractRecord.setViolations(violations);
+
+        return contractRepository.save(contractRecord);
+
+
+
+
+
+    }
+
+}

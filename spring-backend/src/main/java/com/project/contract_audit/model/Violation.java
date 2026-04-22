@@ -22,6 +22,8 @@ public class Violation {
 
     private String legalPrinciple;
 
+    private String severity;
+
     private String matchedPolicy;
 
     private int confidence;
