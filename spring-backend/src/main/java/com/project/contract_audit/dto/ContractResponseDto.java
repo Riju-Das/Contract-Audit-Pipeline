@@ -6,7 +6,7 @@ import lombok.Builder;
 import java.util.List;
 
 @Builder
-public record AuditResponseDto(
+public record ContractResponseDto(
         String filename,
         @JsonProperty("total_violations") int totalViolations,
         List<ViolationDto> violations

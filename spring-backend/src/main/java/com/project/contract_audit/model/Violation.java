@@ -1,5 +1,6 @@
 package com.project.contract_audit.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,10 +21,12 @@ public class Violation {
     @Column(columnDefinition = "TEXT")
     private String chunkText;
 
+    @Column(columnDefinition = "TEXT")
     private String legalPrinciple;
 
     private String severity;
 
+    @Column(columnDefinition = "TEXT")
     private String matchedPolicy;
 
     private int confidence;
@@ -31,10 +34,12 @@ public class Violation {
     @Column(columnDefinition = "TEXT")
     private String reasoning;
 
+    @Column(columnDefinition = "TEXT")
     private String sourceFile;
 
     @ManyToOne
     @JoinColumn(name = "contract_id")
     @ToString.Exclude
+    @JsonIgnore
     private ContractRecord contractRecord;
 }

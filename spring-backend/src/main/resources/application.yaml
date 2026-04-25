@@ -14,8 +14,8 @@ spring:
       host: localhost
       port: 6379
 
-python-pipeline:
-  url: http://localhost:8001
+python:
+  base.url: http://localhost:8001
 
 jwt:
   secret: your_jwt_secret_key
