@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface contractRepository extends JpaRepository<ContractRecord, Long> {
+public interface ContractRepository extends JpaRepository<ContractRecord, Long> {
     List<ContractRecord> findByUserIdOrderByUploadedAtDesc(Long userId);
 }

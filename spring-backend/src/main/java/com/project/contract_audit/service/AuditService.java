@@ -4,7 +4,7 @@ package com.project.contract_audit.service;
 import com.project.contract_audit.dto.ContractResponseDto;
 import com.project.contract_audit.model.ContractRecord;
 import com.project.contract_audit.model.Violation;
-import com.project.contract_audit.repository.contractRepository;
+import com.project.contract_audit.repository.ContractRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
@@ -27,7 +27,7 @@ import java.util.List;
 public class AuditService {
 
     private final RestClient pythonWorkerClient;
-    private final contractRepository contractRepository;
+    private final ContractRepository contractRepository;
 
     @Transactional
     public ContractRecord processAndSaveContract(MultipartFile file, long userId){

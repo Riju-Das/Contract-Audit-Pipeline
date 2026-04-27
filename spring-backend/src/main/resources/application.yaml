@@ -18,7 +18,8 @@ python:
   base.url: http://localhost:8001
 
 jwt:
-  secret: your_jwt_secret_key
-  expiration: 900000
+  secret: ${JWT_SECRET_KEY}
+  access-expiration: 900000
   refresh-expiration: 604800000
+
 
