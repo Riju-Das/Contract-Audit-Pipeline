@@ -21,16 +21,25 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false)
     private String username;
 
     private String fullname;
 
     private String email;
 
+    @Column(nullable = false)
     private String password;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();
     }
+
+    @Override
+    public String getUsername() {
+        return this.username;
+    }
+
+
 }
