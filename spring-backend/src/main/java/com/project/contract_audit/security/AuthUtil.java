@@ -6,6 +6,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -28,12 +29,12 @@ public class AuthUtil {
     @Value("${jwt.refresh-expiration}")
     private long refreshExpiration;
 
-    private Key getSignInKey(){
+    private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    private String buildToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration){
+    private String buildToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration) {
         return Jwts.builder()
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
@@ -43,15 +44,15 @@ public class AuthUtil {
                 .compact();
     }
 
-    public String generateAccessToken(UserDetails userDetails){
+    public String generateAccessToken(UserDetails userDetails) {
         return buildToken(new HashMap<>(), userDetails, accessExpiration);
     }
 
-    public String generateRefreshToken(UserDetails userDetails){
+    public String generateRefreshToken(UserDetails userDetails) {
         return buildToken(new HashMap<>(), userDetails, refreshExpiration);
     }
 
-    private Claims extractAllClaims(String token){
+    private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSignInKey())
                 .build()
@@ -59,23 +60,22 @@ public class AuthUtil {
                 .getBody();
     }
 
-    public <T> T extractClaims(String token , Function<Claims, T> claimsResolver){
+    public <T> T extractClaims(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
-    public String extractUsername(String token){
-        return extractClaims(token , Claims::getSubject);
+    public String extractUsername(String token) {
+        return extractClaims(token, Claims::getSubject);
     }
 
-    private boolean isTokenExpired(String token){
+    private boolean isTokenExpired(String token) {
         return extractClaims(token, Claims::getExpiration).before(new Date());
     }
 
-    public boolean isTokenValid(String token , UserDetails userDetails){
+    public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
     }
-
-
 }
+
