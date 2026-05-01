@@ -88,6 +88,10 @@ public class AuthService {
                 .build();
     }
 
+    public void logout(String refreshToken){
+        refreshTokenService.deleteByToken(refreshToken);
+    }
+
 
 
 
