@@ -48,9 +48,6 @@ public class AuthUtil {
         return buildToken(new HashMap<>(), userDetails, accessExpiration);
     }
 
-    public String generateRefreshToken(UserDetails userDetails) {
-        return buildToken(new HashMap<>(), userDetails, refreshExpiration);
-    }
 
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
