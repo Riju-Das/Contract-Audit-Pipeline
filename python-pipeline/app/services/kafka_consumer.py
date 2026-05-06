@@ -63,41 +63,42 @@ async def _process_audit_request(message_value:dict):
 def start_consumer_loop():
     consumer = _create_consumer()
     consumer.subscribe(["contract_audit_response"])
+    try:
 
-    while True:
-        msg = consumer.poll()
+        while True:
+            msg = consumer.poll()
 
-        if msg is None:
-            continue
+            if msg is None:
+                continue
 
-        if msg.error():
-            if msg.error().code() == KafkaError._PARTITION_EOF:
-                logger.debug("Reached end of partition. Waiting for new messages")
-            else:
-                logger.error(f"Consumer error : {msg.error()}")
-            continue
+            if msg.error():
+                if msg.error().code() == KafkaError._PARTITION_EOF:
+                    logger.debug("Reached end of partition. Waiting for new messages")
+                else:
+                    logger.error(f"Consumer error : {msg.error()}")
+                continue
 
-        try:
-            value = json.loads(msg.value().decode("utf-8"))
-            asyncio.run(_process_audit_request(value))
-            consumer.commit(message=msg)
+            try:
+                value = json.loads(msg.value().decode("utf-8"))
+                asyncio.run(_process_audit_request(value))
+                consumer.commit(message=msg)
 
-            logger.info(f"Offset commited - partition= {msg.partition()} offset= {msg.offset()}")
+                logger.info(f"Offset commited - partition= {msg.partition()} offset= {msg.offset()}")
 
-        except Exception as e:
-            logger.error(
-                f"failed to process contractId=",
-                f"{json.loads(msg.value().decode("utf-8"))['contractId']}",
-                f"- {e}",
-                exc_info=True
-            )
+            except Exception as e:
+                logger.error(
+                    f"failed to process contractId=",
+                    f"{json.loads(msg.value().decode("utf-8"))['contractId']}",
+                    f"- {e}",
+                    exc_info=True
+                )
 
-        except KeyboardInterrupt:
-            logger.info("Kafka Consumer shutting down gracefully")
+    except KeyboardInterrupt:
+        logger.info("Kafka Consumer shutting down gracefully")
 
-        finally:
-            consumer.close()
-            logger.info("Kafka Consumer stopped")
+    finally:
+        consumer.close()
+        logger.info("Kafka Consumer stopped")
 
 
 
