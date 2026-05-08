@@ -2,7 +2,7 @@ import json
 import logging
 import asyncio
 from confluent_kafka import Consumer, KafkaError
-from requests import session
+from app.services.kafka_producer import send_audit_result, flush_producer
 
 from app.config.settings import settings
 from  app.services.processor import process_upload
@@ -60,13 +60,30 @@ async def _process_audit_request(message_value:dict):
         for v in audit_response.violations
     ]
 
+    result_payload = {
+        "contractId": contract_id,
+        "userId": user_id,
+        "filename": filename,
+        "totalViolations": audit_response.total_violations,
+        "violations": violations,
+        "processedAt":datetime.now().isoformat()
+    }
+
+    send_audit_result(result_payload)
+
+    logger.info(
+        f"Audit complete — contractId={contract_id}, "
+        f"violations={audit_response.total_violations}"
+    )
+
+
 def start_consumer_loop():
     consumer = _create_consumer()
-    consumer.subscribe(["contract_audit_response"])
+    consumer.subscribe(["contract_audit_request"])
     try:
 
         while True:
-            msg = consumer.poll()
+            msg = consumer.poll(timeout=1.0)
 
             if msg is None:
                 continue
@@ -87,8 +104,8 @@ def start_consumer_loop():
 
             except Exception as e:
                 logger.error(
-                    f"failed to process contractId=",
-                    f"{json.loads(msg.value().decode("utf-8"))['contractId']}",
+                    f"failed to process contractId="
+                    f"{json.loads(msg.value().decode("utf-8")).get('contractId','?')}"
                     f"- {e}",
                     exc_info=True
                 )
@@ -98,6 +115,7 @@ def start_consumer_loop():
 
     finally:
         consumer.close()
+        flush_producer()
         logger.info("Kafka Consumer stopped")
 
 
