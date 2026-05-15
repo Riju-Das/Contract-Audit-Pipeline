@@ -1,6 +1,5 @@
 package com.project.contract_audit.model;
-
-import jakarta.persistence.Id;
+import org.springframework.data.annotation.Id;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.redis.core.RedisHash;

@@ -79,7 +79,7 @@ async def _process_audit_request(message_value:dict):
 
 def start_consumer_loop():
     consumer = _create_consumer()
-    consumer.subscribe(["contract_audit_request"])
+    consumer.subscribe(["contract.audit.request"])
     try:
 
         while True:

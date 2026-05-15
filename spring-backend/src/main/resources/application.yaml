@@ -28,7 +28,8 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       auto-offset-reset: earliest
       properties:
-        spring.json.trusted.packages: "com.project.contract_audit.kafka.*"
+        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: "com.project.contract_audit.kafka.AuditResultEvent"
 
 
 
@@ -39,7 +40,8 @@ python:
 
 
 jwt:
-  secret: ${JWT_SECRET_KEY}
+  secret:
+    key: ${JWT_SECRET_KEY}
   access-expiration: 900000
   refresh-expiration: 604800000
 
