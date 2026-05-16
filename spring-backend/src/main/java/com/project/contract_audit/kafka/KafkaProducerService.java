@@ -14,13 +14,13 @@ public class KafkaProducerService {
 
     private static final String AUDIT_REQUEST_TOPIC = "contract.audit.request";
 
-    private final KafkaTemplate<String , AuditRequestEvent> kafkaTemplate;
+    private final KafkaTemplate<String , Object> kafkaTemplate;
 
     public void sendAuditRequest(AuditRequestEvent event){
 
         String key = String.valueOf(event.getContractId());
 
-        CompletableFuture<SendResult<String, AuditRequestEvent>> future =
+        CompletableFuture<SendResult<String, Object>> future =
                 kafkaTemplate.send(AUDIT_REQUEST_TOPIC , key , event);
 
         future.whenComplete((result, ex)->{

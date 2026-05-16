@@ -13,6 +13,9 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.stream.Collectors;
+
 import java.util.List;
 
 @Component
@@ -60,9 +63,8 @@ public class KafkaResultConsumer {
                         .reasoning(v.getReasoning())
                         .sourceFile(v.getSourceFile())
                         .contractRecord(record)
-                        .build()
-                )
-                .toList();
+                        .build())
+                .collect(Collectors.toCollection(ArrayList::new));
 
         record.setViolations(violations);
         record.setTotalViolations(event.getTotalViolations());

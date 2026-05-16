@@ -17,5 +17,5 @@ public class AuditResultEvent {
     private String filename;
     private int totalViolations;
     private List<ViolationDto> violations;
-    private LocalDateTime processedAt;
+    private String processedAt;
 }
