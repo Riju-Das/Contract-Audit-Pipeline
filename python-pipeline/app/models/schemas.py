@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Literal
 from enum import Enum
 
 class Severity(str,Enum):
@@ -18,7 +18,24 @@ class Violation(BaseModel):
     reasoning: str = Field(..., description="Reason for this violation")
     source_file: Optional[str]=  Field(None, description="The source file of the policy document")
 
+
+
 class AuditResponse(BaseModel):
     filename: str = Field(..., description="name of the contract analyzed")
     total_violations: int = Field(..., description="Total number of violations found")
     violations: List[Violation] = Field(default_factory=list, description="List of violations")
+
+
+
+class ViolationVerdict(BaseModel):
+    index : int
+    severity: Literal["RED" , "YELLOW" , "GREEN"]
+    legal_principle: str
+    confidence: int = Field(..., ge=0 , le=100)
+    explanation : str
+    applicable_laws : List[str] = Field(default_factory=list)
+    needs_query: bool = Field(default= False)
+    suggested_query : str = Field(default="")
+
+class BatchVerdictResponse:
+    verdicts: List[ViolationVerdict]
