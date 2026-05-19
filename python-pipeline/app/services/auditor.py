@@ -27,20 +27,36 @@ class LegalAuditor:
 
                 try:
                     search_query = f"Legal principles and Indian law violations in: {chunk.page_content}"
-                    results = self.retriever.search(search_query)
+                    results = self.retriever.search(search_query, n_results=5)
 
                     if results and results["distances"][0] and len(results["distances"][0]) > 0:
-                        distance = results["distances"][0][0]
-                        similarity_score = 1 - distance
 
-                        if similarity_score > self.similarity_threshold:
+                        policies = []
+
+                        for doc, meta, dist in zip(
+                                results["documents"][0],
+                                results["metadatas"][0],
+                                results["distances"][0]
+                        ):
+                            similarity = 1 - dist
+                            if similarity >= self.similarity_threshold:
+                                policies.append({
+                                    "text" : doc,
+                                    "source" : meta.get("source", "Unknown"),
+                                    "similarity" : round(similarity, 3),
+                                })
+
+                        if policies:
                             suspicious_violations.append({
-                                "index": i ,
-                                "contract_text": chunk.page_content,
-                                "policy_text" : results["documents"][0][0],
-                                "source": results["metadatas"][0][0].get("source", "Unknown")
+                                "index" : i,
+                                "contract_text" : chunk.page_content,
+                                "policies" : policies,
+                                "policy_text" : policies[0]["text"],
+                                "source" : policies[0]["source"],
 
                             })
+
+
                 except Exception as e:
                     logger.error(f"Error processing chunk: {e}")
                     continue
