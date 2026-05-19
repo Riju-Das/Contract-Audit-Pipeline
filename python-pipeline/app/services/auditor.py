@@ -15,7 +15,7 @@ class LegalAuditor:
             logger.error(f"Failed to initialize legal auditor: {e}")
             raise
 
-    async def _require_and_reclassify(
+    async def _requery_and_reclassify(
             self,
             suspicious_items :list,
             first_verdicts: list
@@ -24,7 +24,7 @@ class LegalAuditor:
         requery_map = {
             v["index"] : v["suggested_query"]
             for v in first_verdicts
-            if v.get("needs_query") and v.get("suggested_query")
+            if v.get("needs_requery") and v.get("suggested_query")
         }
 
         if not requery_map:
@@ -126,9 +126,10 @@ class LegalAuditor:
 
                     if low_conf:
                         logger.info(f"Re-querying {len(low_conf)} uncertain chunks")
-                        ai_verdict = await self._require_and_reclassify(
+
+                        ai_verdict = await self._requery_and_reclassify(
                             suspicious_violations,
-                            low_conf,
+                            ai_verdict,
                         )
 
                     for verdict in ai_verdict:
