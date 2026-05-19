@@ -26,7 +26,10 @@ Cross-reference ALL provided policies. One clause can violate multiple laws simu
 If confidence < 70 for any verdict:
   - Set needs_requery to true
   - Set suggested_query to a precise search string for the specific Indian law section needed
-  - Example: "Section 25F Industrial Disputes Act retrenchment compensation"
+  - Example: 
+        "Section 25F Industrial Disputes Act retrenchment compensation"
+        "Payment of Wages Act Section 7 authorised deductions overtime"
+        "Contract Act 1872 Section 74 penalty clause liquidated damages"
 
 BATCH DATA:
 {batch_data}

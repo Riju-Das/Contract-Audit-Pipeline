@@ -15,6 +15,59 @@ class LegalAuditor:
             logger.error(f"Failed to initialize legal auditor: {e}")
             raise
 
+    async def _require_and_reclassify(
+            self,
+            suspicious_items :list,
+            first_verdicts: list
+    ) -> list:
+
+        requery_map = {
+            v["index"] : v["suggested_query"]
+            for v in first_verdicts
+            if v.get("needs_query") and v.get("suggested_query")
+        }
+
+        if not requery_map:
+            return first_verdicts
+
+        logger.info(f"Re-querying {len(requery_map)} low-confidence chunks")
+
+        enriched_items = []
+
+        for item in suspicious_items:
+            if item["index"] in requery_map:
+
+                followup_query =  requery_map[item["index"]]
+
+                followup_results = self.retriever.search(followup_query, n_results=3)
+
+                if followup_results and followup_results["distances"][0] :
+
+                    extra_policies = [
+                        {
+                            "text":       doc,
+                            "source":     meta.get("source", "Unknown"),
+                            "similarity": round(1 - dist, 3)
+                        }
+                        for doc, meta, dist in zip(
+                            followup_results["documents"][0],
+                            followup_results["metadatas"][0],
+                            followup_results["distances"][0]
+                        )
+                    ]
+
+                    enriched = dict(item)
+                    enriched["policies"] = item.get("policies",[]) + extra_policies
+                    enriched["policy_text"] = enriched["policies"][0]["text"]
+                    enriched_items.append(enriched)
+                    continue
+
+            enriched_items.append(item)
+
+        return call_ai_batch_audit(enriched_items)
+
+
+
     async def analyze_contract(self, filename:str, content:str) -> AuditResponse:
         try:
             chunks = get_legal_chunks(content)
@@ -68,6 +121,15 @@ class LegalAuditor:
                     ai_verdict = call_ai_batch_audit(suspicious_violations)
 
                     logger.info(f"AI RAW OUTPUT: {ai_verdict}")
+
+                    low_conf = [v for v in ai_verdict if v.get("needs_requery")]
+
+                    if low_conf:
+                        logger.info(f"Re-querying {len(low_conf)} uncertain chunks")
+                        ai_verdict = await self._require_and_reclassify(
+                            suspicious_violations,
+                            low_conf,
+                        )
 
                     for verdict in ai_verdict:
 
