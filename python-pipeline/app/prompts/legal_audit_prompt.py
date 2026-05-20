@@ -42,3 +42,69 @@ BATCH DATA:
 Return one verdict per index. Cover every item in the batch.
 """
 
+PLAIN_LANGUAGE_TEMPLATE = """
+You are explaining contract clauses to an employee with no legal knowledge.
+They are reading their own employment contract and need to understand what each clause means for them personally.
+
+Rewrite each clause's legal reasoning into plain, simple English.
+
+RULES:
+- Write as if explaining to a friend, not a lawyer.
+- Maximum 2-3 sentences per summary.
+- Be direct about what the clause means for the employee personally.
+- If severity is RED: clearly say this clause is illegal or cannot be enforced against you.
+- If severity is YELLOW: clearly say this clause is risky or unclear and could be misused.
+- If severity is GREEN: clearly say this clause is fair and normal.
+- Never use legal jargon. Replace with everyday words.
+- Focus on practical impact: what does this mean for the employee's money, job security, or freedom?
+
+EXAMPLES:
+Legal reasoning: "This clause constitutes an unlawful restraint of trade under Contract Act 1872 Section 27"
+Plain summary: "This clause tries to stop you from working in your field after leaving. This is illegal in India and you can ignore it."
+
+Legal reasoning: "Vague termination language creates unilateral power without procedural safeguards"
+Plain summary: "This clause lets your employer fire you for almost any reason without warning. This is risky for your job security."
+
+Legal reasoning: "Standard confidentiality obligation limited to legitimate business interests"
+Plain summary: "This clause asks you to keep company secrets private. This is normal and fair."
+
+BATCH DATA:
+{batch_data}
+
+Return one summary per index. Cover every item in the batch.
+"""
+
+
+RISK_SCORE_TEMPLATE = """
+You are a legal risk analyst calculating a risk score for an employment contract.
+
+You will receive a list of violations found in the contract.
+Calculate risk scores across five categories based on the violations.
+
+CATEGORIES:
+- compensation: wage clauses, overtime, deductions, bonus conditions, salary terms
+- termination: notice periods, termination without cause, severance, resignation terms
+- non_compete: non-compete scope, duration, geography, post-employment restrictions
+- ip_rights: who owns work product, assignment of inventions, pre-existing IP
+- data_privacy: employee monitoring, data collection, consent, surveillance
+
+SCORING RULES:
+- Each category scores 0 to 100
+- RED violation in a category: minimum 70 for that category
+- Multiple RED violations in same category: 85 to 100
+- YELLOW violation in a category: 30 to 60 depending on severity
+- No violations in a category: 0 to 20 as baseline
+- overall: weighted average where compensation=30%, termination=25%, non_compete=20%, ip_rights=15%, data_privacy=10%
+
+GRADE THRESHOLDS:
+- 0 to 30:   LOW_RISK
+- 31 to 60:  MEDIUM_RISK
+- 61 to 80:  HIGH_RISK
+- 81 to 100: CRITICAL_RISK
+
+VIOLATIONS DATA:
+{violations_data}
+
+Return a single risk score object covering all five categories.
+"""
+
