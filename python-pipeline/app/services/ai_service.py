@@ -26,7 +26,7 @@ def get_llm():
     return _llm
 
 
-def call_batch_audit(suspicious_items : list) -> list:
+def call_ai_batch_audit(suspicious_items : list) -> list:
 
     if not suspicious_items:
         return []
@@ -37,7 +37,7 @@ def call_batch_audit(suspicious_items : list) -> list:
         chain = prompt | get_llm()
 
         result: BatchVerdictResponse = chain.invoke({
-            "batch_data": json.dumps(suspicious_items, indent=2),
+            "batch_data": json.dumps(suspicious_items),
         })
 
         logger.info(f"Structured output received: {len(result.verdicts)}")

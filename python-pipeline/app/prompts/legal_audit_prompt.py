@@ -23,6 +23,11 @@ Examples: ["Contract Act 1872", "Payment of Wages Act 1936", "Industrial Dispute
 
 Cross-reference ALL provided policies. One clause can violate multiple laws simultaneously.
 
+CRITICAL: field must be named "needs_requery" not "needs_query"
+CRITICAL: every verdict must include "legal_principle" — 
+          extract it from your reasoning e.g. "Restraint of Trade", 
+          "Statutory Rights Waiver", "Unilateral Power", "Penalty Doctrine"
+
 If confidence < 70 for any verdict:
   - Set needs_requery to true
   - Set suggested_query to a precise search string for the specific Indian law section needed

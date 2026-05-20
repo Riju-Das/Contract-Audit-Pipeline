@@ -30,12 +30,12 @@ class AuditResponse(BaseModel):
 class ViolationVerdict(BaseModel):
     index : int
     severity: Literal["RED" , "YELLOW" , "GREEN"]
-    legal_principle: str
+    legal_principle: str  = Field(default="")
     confidence: int = Field(..., ge=0 , le=100)
     explanation : str
     applicable_laws : List[str] = Field(default_factory=list)
-    needs_query: bool = Field(default= False)
+    needs_requery: bool = Field(default= False)
     suggested_query : str = Field(default="")
 
-class BatchVerdictResponse:
+class BatchVerdictResponse(BaseModel):
     verdicts: List[ViolationVerdict]

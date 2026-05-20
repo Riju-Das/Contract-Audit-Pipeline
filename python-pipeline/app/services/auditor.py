@@ -39,7 +39,7 @@ class LegalAuditor:
 
                 followup_query =  requery_map[item["index"]]
 
-                followup_results = self.retriever.search(followup_query, n_results=3)
+                followup_results = self.retriever.search(followup_query, n_results=1)
 
                 if followup_results and followup_results["distances"][0] :
 
@@ -80,7 +80,7 @@ class LegalAuditor:
 
                 try:
                     search_query = f"Legal principles and Indian law violations in: {chunk.page_content}"
-                    results = self.retriever.search(search_query, n_results=5)
+                    results = self.retriever.search(search_query, n_results=2)
 
                     if results and results["distances"][0] and len(results["distances"][0]) > 0:
 
