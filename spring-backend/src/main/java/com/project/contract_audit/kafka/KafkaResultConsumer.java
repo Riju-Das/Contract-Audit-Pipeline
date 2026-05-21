@@ -35,10 +35,8 @@ public class KafkaResultConsumer {
             @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
             @Header(KafkaHeaders.OFFSET) long offset
     ){
-
         log.info("Received audit result: contractId={}, partition={}, offset={}",
                 event.getContractId(), partition, offset);
-
         ContractRecord record = contractRepository.findById(event.getContractId())
                 .orElseGet(()->{
 
@@ -49,9 +47,7 @@ public class KafkaResultConsumer {
                             .userId(event.getUserId())
                             .filename(event.getFilename())
                             .build();
-
                 });
-
         List<Violation> violations = event.getViolations().stream()
                 .map(v -> Violation.builder()
                         .chunkIndex(v.getChunkIndex())
