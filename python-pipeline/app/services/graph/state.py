@@ -6,11 +6,11 @@ class AuditState(TypedDict):
     suspicious_items: List[dict]
     retriever : object
 
-    first_verdict : List[dict]
-    final_verdict : List[dict]
+    first_verdicts : List[dict]
+    final_verdicts : List[dict]
 
     requery_needed: bool
 
-    enriched_verdict: List[dict]
+    enriched_verdicts: List[dict]
 
     risk_score: dict

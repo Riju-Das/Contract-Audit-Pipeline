@@ -47,8 +47,8 @@ def classify_node(state: AuditState):
     needs_requery = any(v.get("needs_requery") for v in verdicts)
 
     return {
-        "first_verdict" : verdicts,
-        "final_verdict" : verdicts,
+        "first_verdicts" : verdicts,
+        "final_verdicts" : verdicts,
         "requery_needed" : needs_requery
     }
 
@@ -58,7 +58,7 @@ def confidence_router(state: AuditState):
     return "no_requery"
 
 def deep_research_node(state: AuditState):
-    first_verdict = state["first_verdict"]
+    first_verdict = state["first_verdicts"]
     suspicious_items = state["suspicious_items"]
     retriever = state["retriever"]
 
@@ -101,8 +101,124 @@ def deep_research_node(state: AuditState):
 
     second_verdicts = call_ai_batch_audit(enriched_items)
 
-    return {"final_verdict" : second_verdicts}
+    return {"final_verdicts" : second_verdicts}
 
+
+def plain_language_node(state: AuditState) -> dict:
+    final_verdicts   = state["final_verdicts"]
+    suspicious_items = state["suspicious_items"]
+
+    if not final_verdicts:
+        return {"enriched_verdicts": []}
+
+    logger.info(f"plain_language_node: {len(final_verdicts)} verdicts")
+
+    batch = []
+    for verdict in final_verdicts:
+        orig = next(
+            (x for x in suspicious_items
+             if x["index"] == verdict["index"]),
+            None
+        )
+        batch.append({
+            "index":     verdict["index"],
+            "severity":  verdict.get("severity", "GREEN"),
+            "reasoning": verdict.get("explanation", ""),
+            "clause":    orig["contract_text"] if orig else ""
+        })
+
+    try:
+        chain  = (
+            ChatPromptTemplate.from_template(PLAIN_LANGUAGE_TEMPLATE)
+            | get_plain_llm()
+        )
+        result: PlainSummaryResponse = chain.invoke({
+            "batch_data": json.dumps(batch)
+        })
+
+        summary_map = {s.index: s.plain_summary for s in result.summaries}
+
+        enriched = []
+        for verdict in final_verdicts:
+            v = dict(verdict)
+            v["plain_summary"] = summary_map.get(verdict["index"], "")
+            enriched.append(v)
+
+        return {"enriched_verdicts": enriched}
+
+    except Exception as e:
+        logger.error(f"plain_language_node failed: {e}")
+        return {
+            "enriched_verdicts": [
+                dict(v) | {"plain_summary": ""}
+                for v in final_verdicts
+            ]
+        }
+
+
+def risk_score_node(state: AuditState) -> dict:
+    enriched_verdicts = state["enriched_verdicts"]
+    suspicious_items  = state["suspicious_items"]
+
+    logger.info("risk_score_node: calculating risk score")
+
+    relevant = [
+        v for v in enriched_verdicts
+        if v.get("severity") in ("RED", "YELLOW")
+    ]
+
+    if not relevant:
+        return {
+            "risk_score": {
+                "overall":      5,
+                "grade":        "LOW_RISK",
+                "compensation": 0,
+                "termination":  0,
+                "non_compete":  0,
+                "ip_rights":    0,
+                "data_privacy": 0,
+            }
+        }
+
+    violations_summary = []
+    for verdict in relevant:
+        orig = next(
+            (x for x in suspicious_items
+             if x["index"] == verdict["index"]),
+            None
+        )
+        violations_summary.append({
+            "severity":        verdict.get("severity"),
+            "legal_principle": verdict.get("legal_principle", ""),
+            "explanation":     verdict.get("explanation", ""),
+            "clause":          orig["contract_text"] if orig else "",
+            "confidence":      verdict.get("confidence", 0),
+        })
+
+    try:
+        chain  = (
+            ChatPromptTemplate.from_template(RISK_SCORE_TEMPLATE)
+            | get_risk_llm()
+        )
+        result: RiskScore = chain.invoke({
+            "violations_data": json.dumps(violations_summary)
+        })
+
+        return {"risk_score": result.model_dump()}
+
+    except Exception as e:
+        logger.error(f"risk_score_node failed: {e}")
+        return {
+            "risk_score": {
+                "overall":      50,
+                "grade":        "MEDIUM_RISK",
+                "compensation": 0,
+                "termination":  0,
+                "non_compete":  0,
+                "ip_rights":    0,
+                "data_privacy": 0,
+            }
+        }
 
 
 
