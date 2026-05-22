@@ -24,4 +24,5 @@ dependencies = [
     "requests>=2.33.1",
     "sentence-transformers>=5.3.0",
     "uvicorn[standard]>=0.44.0",
+    "langgraph>=1.2.1",
 ]
