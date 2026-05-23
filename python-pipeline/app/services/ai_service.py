@@ -1,6 +1,5 @@
 import json
 import logging
-import re
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from app.config.settings import settings

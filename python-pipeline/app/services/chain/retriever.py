@@ -1,6 +1,6 @@
 import chromadb
 from app.config.settings import settings
-from app.services.embedder import get_embedding_model
+from app.services.chain.embedder import get_embedding_model
 import logging
 
 logger = logging.getLogger(__name__)

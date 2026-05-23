@@ -8,8 +8,8 @@ from langchain_community.document_loaders import DirectoryLoader, TextLoader
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(BASE_DIR))
 
-from app.services.chunker import get_legal_chunks
-from app.services.embedder import generate_embeddings
+from app.services.chain.chunker import get_legal_chunks
+from app.services.chain.embedder import generate_embeddings
 from app.config.settings import settings
 
 logging.basicConfig(

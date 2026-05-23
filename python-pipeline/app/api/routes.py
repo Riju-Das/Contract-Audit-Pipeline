@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, File, UploadFile
-from app.services.processor import process_upload
+from app.services.chain.processor import process_upload
 from app.services.auditor import LegalAuditor
 import logging
 

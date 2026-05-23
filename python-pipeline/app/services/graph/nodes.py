@@ -58,13 +58,13 @@ def confidence_router(state: AuditState):
     return "no_requery"
 
 def deep_research_node(state: AuditState):
-    first_verdict = state["first_verdicts"]
+    first_verdicts = state["first_verdicts"]
     suspicious_items = state["suspicious_items"]
     retriever = state["retriever"]
 
     requery_map = {
         v["index"] : v["suggested_query"]
-        for v in first_verdict
+        for v in first_verdicts
         if v.get("needs_requery") and v.get("suggested_query")
     }
 

@@ -5,7 +5,7 @@ from confluent_kafka import Consumer, KafkaError
 from app.services.kafka_producer import send_audit_result, flush_producer
 
 from app.config.settings import settings
-from  app.services.processor import process_upload
+from app.services.chain.processor import process_upload
 from app.services.auditor import LegalAuditor
 from datetime import datetime
 
@@ -55,6 +55,7 @@ async def _process_audit_request(message_value:dict):
             "matchedPolicy" : v.matched_policy,
             "confidence" : v.confidence,
             "reasoning" : v.reasoning,
+            "plainSummary": v.plain_summary,
             "sourceFile" : v.source_file,
         }
         for v in audit_response.violations
@@ -65,6 +66,7 @@ async def _process_audit_request(message_value:dict):
         "userId": user_id,
         "filename": filename,
         "totalViolations": audit_response.total_violations,
+        "riskScore": audit_response.risk_score.model_dump() if audit_response.risk_score else None,
         "violations": violations,
         "processedAt":datetime.now().isoformat()
     }

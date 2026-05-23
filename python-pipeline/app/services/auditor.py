@@ -1,7 +1,6 @@
 from app.models.schemas import Violation, AuditResponse, Severity, RiskScore
-from app.services.chunker import get_legal_chunks
-from app.services.retriever import LegalRetriever
-from app.services.ai_service import call_ai_batch_audit
+from app.services.chain.chunker import get_legal_chunks
+from app.services.chain.retriever import LegalRetriever
 from app.services.graph.graph import get_graph
 import logging
 
