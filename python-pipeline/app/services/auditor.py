@@ -1,7 +1,8 @@
-from app.models.schemas import Violation, AuditResponse, Severity
+from app.models.schemas import Violation, AuditResponse, Severity, RiskScore
 from app.services.chunker import get_legal_chunks
 from app.services.retriever import LegalRetriever
 from app.services.ai_service import call_ai_batch_audit
+from app.services.graph.graph import get_graph
 import logging
 
 logger = logging.getLogger(__name__)
@@ -14,57 +15,6 @@ class LegalAuditor:
         except Exception as e:
             logger.error(f"Failed to initialize legal auditor: {e}")
             raise
-
-    async def _requery_and_reclassify(
-            self,
-            suspicious_items :list,
-            first_verdicts: list
-    ) -> list:
-
-        requery_map = {
-            v["index"] : v["suggested_query"]
-            for v in first_verdicts
-            if v.get("needs_requery") and v.get("suggested_query")
-        }
-
-        if not requery_map:
-            return first_verdicts
-
-        logger.info(f"Re-querying {len(requery_map)} low-confidence chunks")
-
-        enriched_items = []
-
-        for item in suspicious_items:
-            if item["index"] in requery_map:
-
-                followup_query =  requery_map[item["index"]]
-
-                followup_results = self.retriever.search(followup_query, n_results=1)
-
-                if followup_results and followup_results["distances"][0] :
-
-                    extra_policies = [
-                        {
-                            "text":       doc,
-                            "source":     meta.get("source", "Unknown"),
-                            "similarity": round(1 - dist, 3)
-                        }
-                        for doc, meta, dist in zip(
-                            followup_results["documents"][0],
-                            followup_results["metadatas"][0],
-                            followup_results["distances"][0]
-                        )
-                    ]
-
-                    enriched = dict(item)
-                    enriched["policies"] = item.get("policies",[]) + extra_policies
-                    enriched["policy_text"] = enriched["policies"][0]["text"]
-                    enriched_items.append(enriched)
-                    continue
-
-            enriched_items.append(item)
-
-        return call_ai_batch_audit(enriched_items)
 
 
 
@@ -114,56 +64,92 @@ class LegalAuditor:
                     logger.error(f"Error processing chunk: {e}")
                     continue
 
+
+            if not suspicious_violations:
+                return AuditResponse(
+                    filename=filename,
+                    total_violations=0,
+                    risk_score=RiskScore(
+                        overall=0, grade="LOW_RISK",
+                        compensation=0, termination=0,
+                        non_compete=0, ip_rights=0, data_privacy=0
+                    ),
+                    violations=[]
+                )
+
+            try:
+
+                result = get_graph().invoke({
+                    "filename" : filename,
+                    "suspicious_items": suspicious_violations,
+                    "retriever": self.retriever,
+                    "first_verdicts": [],
+                    "final_verdicts": [],
+                    "requery_needed": False,
+                    "enriched_verdicts": [],
+                    "risk_score": {},
+                })
+
+                enriched_verdicts = result["enriched_verdicts"]
+                risk_score_data = result["risk_score"]
+
+                logger.info(
+                    f"Graph complete — "
+                    f"requery={result['requery_needed']}, "
+                    f"verdicts={len(enriched_verdicts)}, "
+                    f"grade={risk_score_data.get('grade')}"
+                )
+            except Exception as e:
+                logger.error(f"Graph pipeline failed: {e}")
+                raise
+
             final_violations = []
 
-            if suspicious_violations:
-                try:
-                    ai_verdict = call_ai_batch_audit(suspicious_violations)
 
-                    logger.info(f"AI RAW OUTPUT: {ai_verdict}")
+            for verdict in enriched_verdicts:
 
-                    low_conf = [v for v in ai_verdict if v.get("needs_requery")]
+                severity_value = verdict.get("severity", "GREEN")
 
-                    if low_conf:
-                        logger.info(f"Re-querying {len(low_conf)} uncertain chunks")
+                orig = next(
+                    (item for item in suspicious_violations
+                     if item["index"]==verdict["index"]),
+                    None
+                )
 
-                        ai_verdict = await self._requery_and_reclassify(
-                            suspicious_violations,
-                            ai_verdict,
-                        )
+                if orig:
+                    final_violations.append(Violation(
+                        chunk_index=verdict["index"],
+                        chunk_text=orig["contract_text"],
+                        matched_policy=orig["policy_text"],
+                        severity=Severity(severity_value),
+                        legal_principle=verdict.get("legal_principle", ""),
+                        confidence=verdict["confidence"],
+                        reasoning=verdict["explanation"],
+                        plain_summary=verdict.get("plain_summary", ""),
+                        source_file=orig["source"]
+                    ))
 
-                    for verdict in ai_verdict:
+            total_violations = sum(
+                1 for v in final_violations
+                if v.severity in (Severity.RED , Severity.YELLOW)
+            )
 
-                        severity_value = verdict.get("severity", "GREEN")
-
-                        if severity_value in ["RED", "YELLOW"]:
-
-                            orig = next((item for item in suspicious_violations if item["index"]==verdict["index"]),None)
-
-                            if orig:
-                                final_violations.append(Violation(
-                                    chunk_index=verdict["index"],
-                                    chunk_text = orig["contract_text"],
-                                    matched_policy=orig["policy_text"],
-                                    severity=Severity(severity_value),
-                                    legal_principle=verdict.get("legal_principle", "Unknown"),
-                                    confidence=verdict["confidence"],
-                                    reasoning=verdict["explanation"],
-                                    source_file=orig["source"]
-                                ))
-
-                except Exception as e:
-                    logger.error(f"Error calling gemini_batch_audit: {e}")
-                    raise
+            risk_score = RiskScore(**risk_score_data)
 
             return AuditResponse(
                 filename=filename,
-                total_violations=len(final_violations),
+                total_violations=total_violations,
+                risk_score=risk_score,
                 violations=final_violations
             )
+
         except Exception as e:
             logger.critical(f"Critical failure during audit of {filename}: {e}")
-            return AuditResponse(filename=filename, total_violations=0, violations=[])
+            return AuditResponse(
+                filename=filename,
+                total_violations=0,
+                violations=[]
+            )
 
 
 
