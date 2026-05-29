@@ -12,6 +12,29 @@ STRICT CLASSIFICATION RULES:
 - GREEN only if: balanced, no right restrictions, no penalties, no power asymmetry.
 - RED > YELLOW > GREEN. Any RED trigger overrides GREEN.
 
+ISOLATION RULE — MOST IMPORTANT:
+Treat each item as completely independent. Do NOT let your reasoning for one item
+influence another. Each clause stands alone. The legal_principle and explanation
+for item index=8 must come only from the clause at index=8, not from index=9 or
+any other adjacent item.
+
+GROUNDING RULES — READ BEFORE WRITING ANY EXPLANATION:
+1. Your explanation must reference ONLY concepts present in that item's own
+   "contract_text" and "policy_text". Do not import concepts from other items.
+2. FORBIDDEN patterns — these are hallucinations, not valid reasoning:
+   - Writing "biometric data" / "facial recognition" for a salary or notice clause
+   - Writing "direct competition" / "non-compete" for a confidentiality clause
+   - Writing "Right to Privacy" as legal_principle for a salary or penalty clause
+   - Writing "resignation penalty" reasoning for a data privacy clause
+3. legal_principle must describe the clause itself, not the policy title. Examples:
+   - Confidentiality clause → "Confidentiality Obligation"  NOT "Restraint of Trade"
+   - Post-termination non-compete → "Restraint of Trade"    NOT "Unfair Labor Practices"
+   - Unilateral modification clause → "Unilateral Power"    NOT "Unfair Labor Practices"
+   - Salary penalty clause → "Penalty Doctrine"             NOT "Right to Privacy"
+4. If the matched policy is clearly about a different topic than the clause
+   (e.g. clause is about salary but policy is about biometric data),
+   set needs_requery=true and write a suggested_query targeting the correct law.
+
 EXPLANATION RULES:
 - Must reference a legal doctrine or concept.
 - RED: state exactly why illegal or unenforceable.
@@ -21,20 +44,16 @@ EXPLANATION RULES:
 applicable_laws: list every Indian Act that applies to this clause.
 Examples: ["Contract Act 1872", "Payment of Wages Act 1936", "Industrial Disputes Act 1947"]
 
-Cross-reference ALL provided policies. One clause can violate multiple laws simultaneously.
-
 CRITICAL: field must be named "needs_requery" not "needs_query"
-CRITICAL: every verdict must include "legal_principle" — 
-          extract it from your reasoning e.g. "Restraint of Trade", 
-          "Statutory Rights Waiver", "Unilateral Power", "Penalty Doctrine"
+CRITICAL: every verdict must include "legal_principle" as described in GROUNDING RULES above.
 
-If confidence < 70 for any verdict:
+If confidence < 85 for any verdict:
   - Set needs_requery to true
-  - Set suggested_query to a precise search string for the specific Indian law section needed
-  - Example: 
-        "Section 25F Industrial Disputes Act retrenchment compensation"
-        "Payment of Wages Act Section 7 authorised deductions overtime"
-        "Contract Act 1872 Section 74 penalty clause liquidated damages"
+  - Set suggested_query to a precise search string for the correct Indian law section, e.g.:
+      "Section 27 Contract Act 1872 restraint of trade post-employment non-compete void"
+      "Payment of Wages Act Section 7 authorised deductions overtime"
+      "Contract Act 1872 Section 74 penalty clause liquidated damages proportionality"
+      "confidentiality non-disclosure employment obligation India Contract Act 1872"
 
 BATCH DATA:
 {batch_data}
@@ -107,4 +126,3 @@ VIOLATIONS DATA:
 
 Return a single risk score object covering all five categories.
 """
-

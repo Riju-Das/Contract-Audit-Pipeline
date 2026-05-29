@@ -55,6 +55,9 @@ def classify_node(state: AuditState):
 def confidence_router(state: AuditState):
     if state["requery_needed"]:
         return "needs_requery"
+    for v in state["first_verdicts"]:
+        if v.get("confidence", 100) < 85:
+            return "needs_requery"
     return "no_requery"
 
 def deep_research_node(state: AuditState):
