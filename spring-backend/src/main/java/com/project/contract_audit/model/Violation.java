@@ -35,6 +35,9 @@ public class Violation {
     private String reasoning;
 
     @Column(columnDefinition = "TEXT")
+    private String plainSummary;
+
+    @Column(columnDefinition = "TEXT")
     private String sourceFile;
 
     @ManyToOne

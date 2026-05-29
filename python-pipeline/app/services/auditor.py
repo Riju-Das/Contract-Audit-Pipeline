@@ -10,7 +10,7 @@ class LegalAuditor:
     def __init__(self):
         try:
             self.retriever = LegalRetriever()
-            self.similarity_threshold = 0.4
+            self.similarity_threshold = 0.6
         except Exception as e:
             logger.error(f"Failed to initialize legal auditor: {e}")
             raise

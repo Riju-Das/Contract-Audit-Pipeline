@@ -18,5 +18,6 @@ public class ViolationDto {
     private int confidence;
     private String severity;
     private String reasoning;
+    private String plainSummary;
     private String sourceFile;
 }

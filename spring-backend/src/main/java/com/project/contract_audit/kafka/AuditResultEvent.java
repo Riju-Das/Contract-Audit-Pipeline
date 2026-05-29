@@ -1,4 +1,5 @@
 package com.project.contract_audit.kafka;
+import com.project.contract_audit.dto.RiskScoreDto;
 import com.project.contract_audit.dto.ViolationDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,6 +17,7 @@ public class AuditResultEvent {
     private Long userId;
     private String filename;
     private int totalViolations;
+    private RiskScoreDto riskScore;
     private List<ViolationDto> violations;
     private String processedAt;
 }

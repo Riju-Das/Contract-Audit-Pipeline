@@ -28,6 +28,9 @@ public class ContractRecord {
     @Column(name = "total_violations")
     private int totalViolations;
 
+    @Embedded
+    private RiskScoreEmbeddable riskScore;
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "contractRecord")
     private List<Violation> violations;
 

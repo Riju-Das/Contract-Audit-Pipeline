@@ -1,7 +1,9 @@
 package com.project.contract_audit.kafka;
 
 
+import com.project.contract_audit.dto.RiskScoreDto;
 import com.project.contract_audit.model.ContractRecord;
+import com.project.contract_audit.model.RiskScoreEmbeddable;
 import com.project.contract_audit.model.Violation;
 import com.project.contract_audit.repository.ContractRepository;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +58,7 @@ public class KafkaResultConsumer {
                         .legalPrinciple(v.getLegalPrinciple())
                         .matchedPolicy(v.getMatchedPolicy())
                         .confidence(v.getConfidence())
+                        .plainSummary(v.getPlainSummary())
                         .reasoning(v.getReasoning())
                         .sourceFile(v.getSourceFile())
                         .contractRecord(record)
@@ -65,10 +68,25 @@ public class KafkaResultConsumer {
         record.setViolations(violations);
         record.setTotalViolations(event.getTotalViolations());
 
+        RiskScoreDto rs = event.getRiskScore();
+        if (rs != null) {
+            record.setRiskScore(RiskScoreEmbeddable.builder()
+                    .overall(rs.getOverall())
+                    .grade(rs.getGrade())
+                    .compensation(rs.getCompensation())
+                    .termination(rs.getTermination())
+                    .nonCompete(rs.getNonCompete())
+                    .ipRights(rs.getIpRights())
+                    .dataPrivacy(rs.getDataPrivacy())
+                    .build());
+        }
+
         contractRepository.save(record);
 
-        log.info("Saved audit result to DB: contractId={}, violations={}",
-                event.getContractId(), event.getTotalViolations());
+        log.info("Saved audit result to DB: contractId={}, violations={}, grade={}",
+                event.getContractId(),
+                event.getTotalViolations(),
+                rs != null ? rs.getGrade() : "N/A");
 
 
     }
