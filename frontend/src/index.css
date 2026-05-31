@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #fbfaf8;
+    --foreground: #2d2926;
+    --card: #ffffff;
+    --card-foreground: #2d2926;
+    --popover: #ffffff;
+    --popover-foreground: #2d2926;
+    --primary: #c5a059;
+    --primary-foreground: #ffffff;
+    --secondary: #f3efe9;
+    --secondary-foreground: #2d2926;
+    --muted: #f3efe9;
+    --muted-foreground: #7a7571;
+    --accent: #f3efe9;
+    --accent-foreground: #2d2926;
+    --destructive: #e05252;
+    --destructive-foreground: #ffffff;
+    --border: #e6e2db;
+    --input: #e6e2db;
+    --ring: #c5a059;
+    --radius: 0rem;
+    --chart-1: #c5a059;
+    --chart-2: #e6e2db;
+    --chart-3: #2d2926;
+    --chart-4: #a39d98;
+    --chart-5: #cfcac3;
+    
+    --sidebar-background: #fbfaf8;
+    --sidebar-foreground: #2d2926;
+    --sidebar-primary: #2d2926;
+    --sidebar-primary-foreground: #fbfaf8;
+    --sidebar-accent: #f3efe9;
+    --sidebar-accent-foreground: #2d2926;
+    --sidebar-border: #e6e2db;
+    --sidebar-ring: #c5a059;
+    --shadow-blur: 0px;
+    --shadow-color: hsl(0 0% 0%);
+    --shadow-spread: 0px;
+    --shadow-opacity: 0;
+    --shadow-offset-x: 0px;
+    --shadow-offset-y: 1px;
+    --font-mono: Geist Mono, monospace;
+    --font-sans: Geist Mono, monospace;
+    --font-serif: Geist Mono, monospace;
+    
+    /* Ensure old variable mappings work if they are explicitly referenced */
+    --color-card: var(--card);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-muted: var(--muted);
+    --color-accent: var(--accent);
+    --color-border: var(--border);
+    --color-radius: var(--radius);
+    --color-primary: var(--primary);
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-destructive: var(--destructive);
+  }
+
+  .dark {
+    --background: #09090b;
+    --foreground: #fafafa;
+    --card: #141416;
+    --card-foreground: #fafafa;
+    --popover: #141416;
+    --popover-foreground: #fafafa;
+    --primary: #d4af37;
+    --primary-foreground: #111111;
+    --secondary: #27272a;
+    --secondary-foreground: #fafafa;
+    --muted: #27272a;
+    --muted-foreground: #a1a1aa;
+    --accent: #27272a;
+    --accent-foreground: #fafafa;
+    --destructive: #ef4444;
+    --destructive-foreground: #fafafa;
+    --border: #27272a;
+    --input: #27272a;
+    --ring: #d4af37;
+    --chart-1: #d4af37;
+    --chart-2: #27272a;
+    --chart-3: #fafafa;
+    --chart-4: #52525b;
+    --chart-5: #71717a;
+    
+    --sidebar-background: #09090b;
+    --sidebar-foreground: #fafafa;
+    --sidebar-primary: #fafafa;
+    --sidebar-primary-foreground: #09090b;
+    --sidebar-accent: #27272a;
+    --sidebar-accent-foreground: #fafafa;
+    --sidebar-border: #27272a;
+    --sidebar-ring: #d4af37;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
+}
+
+/* Animations referenced by the landing page */
+@keyframes slide-in-from-bottom {
+  from {
+    transform: translateY(2.5rem);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.slide-in-from-bottom-10 {
+  animation-name: slide-in-from-bottom;
+}
