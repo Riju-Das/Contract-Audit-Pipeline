@@ -1,6 +1,6 @@
 import json
 import logging
-from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from app.services.ai_service import call_ai_batch_audit
 from app.config.settings import settings
@@ -19,10 +19,11 @@ _risk_llm = None
 def get_plain_llm():
     global _plain_llm
     if _plain_llm is None:
-        base = ChatGroq(
-            model="llama-3.3-70b-versatile",
-            api_key=settings.groq_api_key,
-            temperature=0.3
+        base = ChatOpenAI(
+            model="zai-glm-4.7",
+            api_key=settings.cerebras_api_key,
+            base_url="https://api.cerebras.ai/v1",
+            temperature=0.1,
         )
 
         _plain_llm = base.with_structured_output(PlainSummaryResponse)
@@ -31,10 +32,11 @@ def get_plain_llm():
 def get_risk_llm():
     global _risk_llm
     if _risk_llm is None:
-        base = ChatGroq(
-            model="llama-3.3-70b-versatile",
-            api_key=settings.groq_api_key,
-            temperature=0.1
+        base = ChatOpenAI(
+            model="zai-glm-4.7",
+            api_key=settings.cerebras_api_key,
+            base_url="https://api.cerebras.ai/v1",
+            temperature=0.1,
         )
         _risk_llm = base.with_structured_output(RiskScore)
     return _risk_llm

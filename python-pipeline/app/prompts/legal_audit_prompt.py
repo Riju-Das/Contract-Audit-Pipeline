@@ -11,6 +11,11 @@ STRICT CLASSIFICATION RULES:
   "as needed" / "from time to time" without defined scope.
 - GREEN only if: balanced, no right restrictions, no penalties, no power asymmetry.
 - RED > YELLOW > GREEN. Any RED trigger overrides GREEN.
+- RED if clause includes: unpaid mandatory pre-employment training or onboarding,
+  withholding of final wages beyond 2 working days, forfeiture of earned/accrued leave
+  on termination, prohibition on discussing wages with other employees,
+  waiver of right to report violations to labor/regulatory authorities,
+  unilateral right to modify contract terms without employee consent.
 
 ISOLATION RULE — MOST IMPORTANT:
 Treat each item as completely independent. Do NOT let your reasoning for one item

@@ -1,6 +1,6 @@
 import json
 import logging
-from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from app.config.settings import settings
 from app.prompts.legal_audit_prompt import LEGAL_AUDIT_TEMPLATE
@@ -14,10 +14,11 @@ _llm = None
 def get_llm():
     global _llm
     if _llm is None:
-        base = ChatGroq(
-            model = "llama-3.3-70b-versatile",
-            api_key = settings.groq_api_key,
-            temperature = 0.1
+        base = ChatOpenAI(
+            model="gpt-oss-120b",
+            api_key=settings.cerebras_api_key,
+            base_url="https://api.cerebras.ai/v1",
+            temperature=0.1,
         )
 
         _llm = base.with_structured_output(BatchVerdictResponse)

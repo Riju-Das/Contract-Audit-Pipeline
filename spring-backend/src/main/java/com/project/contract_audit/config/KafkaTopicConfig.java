@@ -79,6 +79,7 @@ public class KafkaTopicConfig {
         ConcurrentKafkaListenerContainerFactory<String, AuditResultEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
+        factory.setConcurrency(3);
         return factory;
     }
 }

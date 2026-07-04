@@ -4,7 +4,10 @@ import os
 class Settings(BaseSettings):
     gemini_api_key: str
     groq_api_key: str
+    openrouter_api_key: str
+    cerebras_api_key: str
     kafka_bootstrap_servers: str = "localhost:9092"
+    kafka_consumer_group_id: str = "python-audit-worker-group"
 
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     policy_dir:str = os.path.join(base_dir,"violation-policies")

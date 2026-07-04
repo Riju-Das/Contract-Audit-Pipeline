@@ -24,7 +24,7 @@ def get_auditor() -> LegalAuditor:
 def _create_consumer() -> Consumer:
     return Consumer({
         "bootstrap.servers":settings.kafka_bootstrap_servers,
-        "group.id": "python-audit-worker-group",
+        "group.id": settings.kafka_consumer_group_id,
         "auto.offset.reset": "earliest",
         "enable.auto.commit":False,
         "max.poll.interval.ms":600000,

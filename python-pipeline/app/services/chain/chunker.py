@@ -19,7 +19,7 @@ def get_legal_chunks(markdown_text):
         header_splits = header_splitter.split_text(markdown_text)
 
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size = 1000,
+            chunk_size = 500,
             chunk_overlap=200,
             separators=["\n\n","\n","Section","Clause","Rule", ".", " "]
         )
